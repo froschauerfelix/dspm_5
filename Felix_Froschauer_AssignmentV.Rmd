@@ -1,0 +1,241 @@
+---
+title: "Assignment_5"
+author: "Felix Froschauer"
+date: "29 12 2021"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## General Setup
+First of all, we need to import all necessary libraries and set up the working directory correctly.
+
+
+```{r library, message=FALSE, warning=FALSE}
+library(httr)
+library(jsonlite)
+library(ggplot2)
+library(readr)
+library(dplyr)
+```
+
+## Exercise 1 - Setting up a new GitHub repository
+
+The whole assignment can be accessed publicly using the following link: [https://github.com/froschauerfelix/dspm_5](https://github.com/froschauerfelix/dspm_5)
+
+## Exercise 2 - Getting to know the API
+
+When you are sharing your code, the personalized API-Key should stay hidden. To achieve that, the API-Key can be imported using another file and only in that specific file, the API-Key can be detected. Having the API-Key imported into our file, it can be used to send the first get-requests.
+
+
+```{r API_key}
+
+source("~/R/DS ProjectManagement/Assignment 5/API_key.R")
+```
+
+## Exercise 3 - Interacting with the API - the basics
+
+After sending the first request, the status of the response needs to be reviewed. 
+Here: The status is 200. Everything is working fine.
+
+```{r cars, echo=FALSE}
+# complete list of venues in Germany (Only page 1)
+venues_response <- GET(paste(
+  "https://app.ticketmaster.com/discovery/v2/venues.json?countryCode=DE&apikey", 
+  api_key, sep = "="))
+venues_list <- jsonlite::fromJSON(
+  content(venues_response, as = "text"))[["_embedded"]][["venues"]]
+venues_response
+```
+A single get-request leads to a data set with 20 different venues. Only the first page is accessed here and to access more data, more requests need to be send. 
+
+
+```{r name, echo=FALSE}
+size <- 20
+df_venues_de_page_1 <- 
+  data.frame(
+    name = character(size), 
+    city = character(size), 
+    postalcode = integer(size), 
+    address = character(size),
+    url = character(size), 
+    long = integer(size), 
+    lat = integer(size))
+
+
+# complete list of venues in Germany (Only page 1)
+venues_response <- GET(paste(
+  "https://app.ticketmaster.com/discovery/v2/venues.json?countryCode=DE&apikey", 
+  api_key, sep = "="))
+venues_list <- jsonlite::fromJSON(
+  content(venues_response, as = "text"))[["_embedded"]][["venues"]]
+
+# insert data from venues to data frame
+df_venues_de_page_1$name <- venues_list$name
+df_venues_de_page_1$city <- venues_list$city$name
+df_venues_de_page_1$postalcode <- venues_list$postalCode
+df_venues_de_page_1$address <- venues_list$address$line1
+df_venues_de_page_1$url <- venues_list$url 
+df_venues_de_page_1$long<- venues_list$location$longitude
+df_venues_de_page_1$lat<- venues_list$location$latitude
+
+glimpse(df_venues_de_page_1)
+```
+
+## Exercise 4 - Interacting with the API - advanced
+
+Iterating through all pages takes time. For that reason, I have saved all venues in Germany in a .csv file and the iteration doesn't need to be executed for each separate working session. The data can be updated in a separate file, so that it's always up to date. The code can be viewed in the [github repository](https://github.com/froschauerfelix/dspm_5) in the file `get_all_data.R`.
+
+
+```{r  venues_ger, echo=FALSE, message=FALSE} 
+# import the correct csv file
+country_code <- "de"
+
+# file with data generating process
+df_venues <- read_csv(paste(paste("df_venues",country_code,sep="_"), "csv", sep="."))
+
+glimpse(df_venues)
+```
+
+# Exercise 5 - Visualizing the extracted data
+
+Not every venue location can be plotted. Wrong latitude and longitude values need to be filtered and  missing values (for long and lat) need to be excluded. Out of the 12560 observations about 8099 are plotted here (29. December).
+
+```{r plot_ger, echo=FALSE}
+country <- "Germany"
+# correct type
+df_venues$long <- as.numeric(df_venues$long)
+df_venues$lat <- as.numeric(df_venues$lat)
+
+# eliminating extreme and missing values
+if (country == "Germany"){
+subset_venues <- subset(df_venues, lat > 47.271679)
+subset_venues <- subset(subset_venues, lat < 55.0846)
+
+subset_venues <- subset(subset_venues, long > 5.866943)
+subset_venues <- subset(subset_venues, as.numeric(long) < 15.043611)
+}
+
+
+if (country == "France") {
+  subset_venues <- subset(df_venues, lat > 40)
+  subset_venues <- subset(subset_venues, lat < 51.05)
+  
+  subset_venues <- subset(subset_venues, long > -5.5)
+  subset_venues <- subset(subset_venues, as.numeric(long) < 10)
+  
+}
+
+title <- paste("Event locations across", country, sep=" ")
+
+
+# plot for specific country
+ggplot() +
+  geom_polygon(
+    aes(x = long, y = lat, group = group), data = map_data("world", region = country),
+    fill = "grey90",color = "black") +
+  theme_void() + coord_quickmap() +
+  labs(title = title,caption = "Source: ticketmaster.com") +
+  theme(title = element_text(size=8, face='bold'),
+        plot.caption = element_text(face = "italic")) +
+  geom_point(data = subset_venues, aes(x = long, y = lat), color = "red", size = 0.2) 
+
+
+```
+
+## Exercise 6 - Event locations in France
+
+Exercises 2 to 5 are repeated here for another country: France.
+
+First page observations:
+
+```{r page_1_fr, echo=FALSE}
+venues_response_fr <- GET(paste("https://app.ticketmaster.com/discovery/v2/venues.json?countryCode=FR&apikey", api_key, sep = "="))
+
+# Exercise 3 again
+size <- 20
+df_venues_fr_page_1 <- 
+  data.frame(
+    name = character(size), 
+    city = character(size), 
+    postalcode = integer(size), 
+    address = character(size),
+    url = character(size), 
+    long = integer(size), 
+    lat = integer(size))
+
+
+# complete list of venues (Only page 1)
+venues_list_fr <- jsonlite::fromJSON(content(venues_response_fr, as = "text"))[["_embedded"]][["venues"]]
+
+# insert columns to data frame
+df_venues_fr_page_1$name <- venues_list_fr$name
+df_venues_fr_page_1$city <- venues_list_fr$city$name
+df_venues_fr_page_1$postalcode <- venues_list_fr$postalCode
+df_venues_fr_page_1$address <- venues_list_fr$address$line1
+df_venues_fr_page_1$url <- venues_list_fr$url 
+df_venues_fr_page_1$long<- venues_list_fr$location$longitude
+df_venues_fr_page_1$lat<- venues_list_fr$location$latitude
+
+glimpse(df_venues_fr_page_1)
+
+```
+
+For all pages:
+```{r all_fr, echo=FALSE, message=FALSE}
+# import the correct csv file
+country_code <- "fr"
+
+# file with data generating process
+df_venues <- read_csv(paste(paste("df_venues",country_code,sep="_"), "csv", sep="."))
+
+glimpse(df_venues)
+
+```
+
+Exluding the extreme values for France, the following plot can be drawn.
+```{r plot_fr, echo=FALSE}
+country <- "France"
+# correct type
+df_venues$long <- as.numeric(df_venues$long)
+df_venues$lat <- as.numeric(df_venues$lat)
+
+# eliminating extreme and missing values
+if (country == "Germany"){
+subset_venues <- subset(df_venues, lat > 47.271679)
+subset_venues <- subset(subset_venues, lat < 55.0846)
+
+subset_venues <- subset(subset_venues, long > 5.866943)
+subset_venues <- subset(subset_venues, as.numeric(long) < 15.043611)
+}
+
+
+if (country == "France") {
+  subset_venues <- subset(df_venues, lat > 40)
+  subset_venues <- subset(subset_venues, lat < 51.05)
+  
+  subset_venues <- subset(subset_venues, long > -5.5)
+  subset_venues <- subset(subset_venues, as.numeric(long) < 10)
+  
+}
+
+title <- paste("Event locations across", country, sep=" ")
+
+
+# plot for specific country
+ggplot() +
+  geom_polygon(
+    aes(x = long, y = lat, group = group), data = map_data("world", region = country),
+    fill = "grey90",color = "black") +
+  theme_void() + coord_quickmap() +
+  labs(title = title,caption = "Source: ticketmaster.com") +
+  theme(title = element_text(size=8, face='bold'),
+        plot.caption = element_text(face = "italic")) +
+  geom_point(data = subset_venues, aes(x = long, y = lat), color = "red", size = 0.2) 
+
+```
+

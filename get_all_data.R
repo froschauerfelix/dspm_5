@@ -17,10 +17,15 @@ df_venues_de <-
     long = integer(), 
     lat = integer())
 
-# get page number
+# get page number Germany
+venues_response_germany <- GET(paste(
+  "https://app.ticketmaster.com/discovery/v2/venues.json?countryCode=DE&apikey", 
+  api_key, sep = "="))
+page_number_germany <- jsonlite::fromJSON(
+  content(venues_response_germany, as = "text"))[["page"]][["totalPages"]]
 
 
-for (m in 0:627) {
+for (m in 0:page_number_germany-2) {
   
   # create temporary data frame
   new_df <- 
@@ -106,8 +111,14 @@ df_venues_fr <-
     lat = integer())
 
 # get page number
+venues_response_france <- GET(paste(
+  "https://app.ticketmaster.com/discovery/v2/venues.json?countryCode=FR&apikey", 
+  api_key, sep = "="))
+page_number_france <- jsonlite::fromJSON(
+  content(venues_response_france, as = "text"))[["page"]][["totalPages"]]
 
-for (m in 0:969) {
+
+for (m in 0:page_number_france-2) {
   
   # create temporary data frame
   new_df <- 
@@ -181,7 +192,7 @@ for (m in 0:969) {
 # save the data sets in a csv file
 
 write.csv(df_venues_de,"~/R/DS ProjectManagement/Assignment 5/dspm_5/df_venues_de.csv", row.names = TRUE)
-#write.csv(df_venues_fr,"~/R/DS ProjectManagement/Assignment 5/dspm_5/df_venues_fr.csv", row.names = TRUE)
+write.csv(df_venues_fr,"~/R/DS ProjectManagement/Assignment 5/dspm_5/df_venues_fr.csv", row.names = TRUE)
 
 
 

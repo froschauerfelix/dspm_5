@@ -1,7 +1,7 @@
 # Assignment 5 - DSPM
 
-# main addition
-
+getwd()
+rm(list = ls())
 
 # libraries and variables
 library(httr)
@@ -45,8 +45,9 @@ df_venues_de_page_1$lat<- venues_list$location$latitude
 # Interacting with the API - advanced
 
 # specify the country
-country <- "Germany"
-country_code <- "de"
+# Germany: de & France: fr
+country <- "France"
+country_code <- "fr"
 
 
 # file with data generating process
@@ -69,7 +70,7 @@ subset_venues <- subset(subset_venues, as.numeric(long) < 15.043611)
 
 if (country == "France") {
   subset_venues <- subset(df_venues, lat > 40)
-  subset_venues <- subset(subset_venues_fr, lat < 51.05)
+  subset_venues <- subset(subset_venues, lat < 51.05)
   
   subset_venues <- subset(subset_venues, long > -5.5)
   subset_venues <- subset(subset_venues, as.numeric(long) < 10)
@@ -89,7 +90,4 @@ ggplot() +
   theme(title = element_text(size=8, face='bold'),
         plot.caption = element_text(face = "italic")) +
   geom_point(data = subset_venues, aes(x = long, y = lat), color = "red", size = 0.2) 
-
-
-
 
