@@ -1,5 +1,9 @@
 # data generating process
-
+library(httr)
+source("~/R/DS ProjectManagement/Assignment 5/API_key.R")
+library(jsonlite)
+library(ggplot2)
+library(readr)
 
 
 # Germany
@@ -176,7 +180,7 @@ for (m in 0:969) {
 
 # save the data sets in a csv file
 
-#write.csv(df_venues_de,"~/R/DS ProjectManagement/Assignment 5/dspm_5/df_venues_de.csv", row.names = TRUE)
+write.csv(df_venues_de,"~/R/DS ProjectManagement/Assignment 5/dspm_5/df_venues_de.csv", row.names = TRUE)
 #write.csv(df_venues_fr,"~/R/DS ProjectManagement/Assignment 5/dspm_5/df_venues_fr.csv", row.names = TRUE)
 
 
