@@ -103,7 +103,7 @@ glimpse(df_venues)
 
 # Exercise 5 - Visualizing the extracted data
 
-Not every venue location can be plotted. Wrong latitude and longitude values need to be filtered and  missing values (for long and lat) need to be excluded. Out of the 12560 observations about 8099 are plotted here (29. December).
+Not every venue location can be plotted. Wrong latitude and longitude values need to be filtered and  missing values (for long and lat) need to be excluded. Out of the 12560 observations about 8099 are plotted here (last updated:     29. December).
 
 ```{r plot_ger, echo=FALSE}
 country <- "Germany"
